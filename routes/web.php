@@ -29,6 +29,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [UserController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [UserController::class, 'update'])->name('profile.update');
+    Route::put('/profile/avatar', [UserController::class, 'updateAvatar'])->name('profile.avatar');
+    Route::put('/profile/password', [UserController::class, 'updatePassword'])->name('profile.password');
+    Route::put('/profile/notifications', [UserController::class, 'updateNotifications'])->name('profile.notifications');
+    Route::delete('/profile', [UserController::class, 'destroyAccount'])->name('profile.destroy');
 
     // Participant
     Route::middleware('role:participant')->group(function () {

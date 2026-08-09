@@ -14,6 +14,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $fillable = [
         'agency_id', 'name', 'email', 'password', 'role', 'user_type', 'mykad',
+        'avatar', 'notification_preferences',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -23,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'notification_preferences' => 'array',
         ];
     }
 

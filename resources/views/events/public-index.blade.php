@@ -11,6 +11,15 @@
         'event'       => ['icon' => 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5', 'grad' => 'from-rose-500 to-pink-600', 'chip' => 'bg-rose-50 text-rose-700 ring-rose-200', 'head' => 'from-rose-500 to-pink-700'],
     ];
 
+    // Event status -> badge tone + icon
+    $statusMeta = [
+        'open'      => ['tone' => 'success', 'icon' => 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+        'closed'    => ['tone' => 'neutral', 'icon' => 'M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z'],
+        'draft'     => ['tone' => 'neutral', 'icon' => 'M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z'],
+        'cancelled' => ['tone' => 'danger', 'icon' => 'M6 18L18 6M6 6l12 12'],
+        'completed' => ['tone' => 'success', 'icon' => 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+    ];
+
     function category_style($name, $map)
     {
         $key = strtolower(trim($name ?? ''));
@@ -93,30 +102,30 @@
 </section>
 
 {{-- ================= STATS ================= --}}
-<section class="relative z-10 mx-auto -mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
+<section class="relative z-10 mx-auto -mt-16 max-w-7xl px-4 sm:px-6 lg:px-8" data-reveal>
     <div class="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 shadow-xl shadow-slate-900/5 lg:grid-cols-4">
         <div class="bg-white p-5 text-center sm:p-6">
             <p class="text-2xl font-bold tracking-tight text-primary-700 sm:text-3xl" data-count="{{ $stats['events'] }}">0</p>
-            <p class="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500 sm:text-sm">Open events</p>
+            <p class="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500 sm:text-sm">{{ $stats['events'] === 1 ? 'Open event' : 'Open events' }}</p>
         </div>
         <div class="bg-white p-5 text-center sm:p-6">
             <p class="text-2xl font-bold tracking-tight text-emerald-600 sm:text-3xl" data-count="{{ $stats['agencies'] }}">0</p>
-            <p class="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500 sm:text-sm">Partner agencies</p>
+            <p class="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500 sm:text-sm">{{ $stats['agencies'] === 1 ? 'Partner agency' : 'Partner agencies' }}</p>
         </div>
         <div class="bg-white p-5 text-center sm:p-6">
             <p class="text-2xl font-bold tracking-tight text-indigo-600 sm:text-3xl" data-count="{{ $stats['users'] }}">0</p>
-            <p class="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500 sm:text-sm">Registered users</p>
+            <p class="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500 sm:text-sm">{{ $stats['users'] === 1 ? 'Registered user' : 'Registered users' }}</p>
         </div>
         <div class="bg-white p-5 text-center sm:p-6">
             <p class="text-2xl font-bold tracking-tight text-amber-600 sm:text-3xl" data-count="{{ $stats['registrations'] }}">0</p>
-            <p class="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500 sm:text-sm">Registrations</p>
+            <p class="mt-1 text-xs font-medium uppercase tracking-wide text-slate-500 sm:text-sm">{{ $stats['registrations'] === 1 ? 'Registration' : 'Registrations' }}</p>
         </div>
     </div>
 </section>
 
 {{-- ================= SEARCH ================= --}}
 <section class="mx-auto mt-10 max-w-7xl px-4 sm:px-6 lg:px-8" id="events">
-    <div class="card p-5 sm:p-6">
+    <div class="card p-5 sm:p-6" data-reveal>
         <form method="GET" action="{{ route('events.search') }}" class="grid gap-3 md:grid-cols-[1fr_auto_auto_auto] md:items-end">
             <div>
                 <label class="label" for="keyword">Search events</label>
@@ -157,10 +166,16 @@
             </a>
             @foreach ($categories as $category)
                 @php $chip = category_style($category->category_name, $categoryStyles)['chip']; @endphp
-                <a href="{{ route('events.search', ['category_id' => $category->category_id]) }}"
-                   class="rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset transition {{ request('category_id') == $category->category_id ? 'bg-primary-700 text-white ring-primary-700' : $chip . ' hover:opacity-80' }}">
-                    {{ $category->category_name }} ({{ $category->events_count }})
-                </a>
+                @if ($category->events_count === 0)
+                    <span class="cursor-not-allowed rounded-full bg-slate-50 px-3 py-1 text-xs font-medium text-slate-400 ring-1 ring-inset ring-slate-200" title="No upcoming events in this category">
+                        {{ $category->category_name }} ({{ $category->events_count }})
+                    </span>
+                @else
+                    <a href="{{ route('events.search', ['category_id' => $category->category_id]) }}"
+                       class="rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset transition {{ request('category_id') == $category->category_id ? 'bg-primary-700 text-white ring-primary-700' : $chip . ' hover:opacity-80' }}">
+                        {{ $category->category_name }} ({{ $category->events_count }})
+                    </a>
+                @endif
             @endforeach
         </div>
     </div>
@@ -175,10 +190,11 @@
             <p class="mt-0.5 text-sm text-slate-500">Find the right programme for you.</p>
         </div>
     </div>
-    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-{{ min(6, $categories->count()) }}">
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
         @foreach ($categories as $category)
             @php $style = category_style($category->category_name, $categoryStyles); @endphp
             <a href="{{ route('events.search', ['category_id' => $category->category_id]) }}"
+               data-reveal style="--reveal-delay: {{ ($loop->index % 6) * 60 }}ms"
                class="group card flex items-center gap-4 p-5 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg">
                 <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $style['grad'] }} text-white shadow-md transition duration-200 group-hover:scale-110">
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -186,8 +202,8 @@
                     </svg>
                 </span>
                 <div class="min-w-0">
-                    <p class="truncate font-semibold text-slate-900 group-hover:text-primary-700">{{ $category->category_name }}</p>
-                    <p class="text-xs text-slate-500">{{ $category->events_count }} event{{ $category->events_count === 1 ? '' : 's' }}</p>
+                    <p class="leading-snug font-semibold text-slate-900 group-hover:text-primary-700">{{ $category->category_name }}</p>
+                    <p class="mt-0.5 text-xs text-slate-500">{{ $category->events_count }} event{{ $category->events_count === 1 ? '' : 's' }}</p>
                 </div>
                 <svg class="ml-auto h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-primary-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -200,7 +216,7 @@
 
 {{-- ================= EVENTS ================= --}}
 <section class="mx-auto mt-12 max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="mb-6 flex items-end justify-between gap-4">
+    <div class="mb-6 flex items-end justify-between gap-4" data-reveal>
         <div>
             <h2 class="text-xl font-bold tracking-tight text-slate-900">
                 {{ request()->hasAny(['keyword', 'category_id', 'date']) ? 'Search results' : 'Upcoming events' }}
@@ -219,38 +235,72 @@
     </div>
 
     @if ($events->isEmpty())
-        <x-ui.empty title="No events found" message="Try adjusting your search filters or check back later for new programs." />
+        <x-ui.empty title="No events found" message="Try adjusting your search filters or check back later for new programs." data-reveal>
+            @if (request()->hasAny(['keyword', 'category_id', 'date']))
+                <a href="{{ route('events.search') }}" class="btn btn-primary btn-sm">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Clear filters
+                </a>
+            @endif
+        </x-ui.empty>
     @else
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             @foreach ($events as $event)
                 @php
                     $style = category_style($event->category->category_name ?? '', $categoryStyles);
                     $registered = $event->registrations_count ?? 0;
-                    $pct = $event->capacity ? min(100, (int) round($registered / $event->capacity * 100)) : 0;
+                    $capacity = $event->capacity ?: 0;
+                    $pct = $capacity ? min(100, (int) round($registered / $capacity * 100)) : 0;
                     $full = $pct >= 100;
+                    $warning = $pct >= 90 && !$full;
+                    $status = $statusMeta[$event->status] ?? $statusMeta['open'];
+                    $eventDate = \Carbon\Carbon::parse($event->date);
                 @endphp
 
-                <article class="group card flex flex-col overflow-hidden transition duration-200 hover:-translate-y-1 hover:shadow-xl">
+                <article data-reveal style="--reveal-delay: {{ ($loop->index % 6) * 60 }}ms"
+                         class="group card flex flex-col overflow-hidden transition duration-200 hover:-translate-y-1 hover:shadow-xl">
                     {{-- Card header / "image" --}}
-                    <a href="{{ route('events.show', $event) }}" class="relative block h-36 overflow-hidden bg-gradient-to-br {{ $style['head'] }}">
+                    <a href="{{ route('events.show', $event) }}" class="relative block h-32 overflow-hidden bg-gradient-to-br {{ $style['head'] }}">
                         <div class="absolute inset-0 opacity-25" style="background-image: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.5) 0, transparent 45%), radial-gradient(circle at 20% 90%, rgba(255,255,255,0.35) 0, transparent 40%);"></div>
                         <div class="absolute inset-0 flex items-center justify-center">
-                            <svg class="h-14 w-14 text-white/70 transition duration-300 group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="currentColor">
+                            <svg class="h-10 w-10 text-white/60 transition duration-300 group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke-width="1.2" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="{{ $style['icon'] }}" />
                             </svg>
                         </div>
-                        <div class="absolute left-3 top-3 flex gap-2">
-                            <x-ui.badge type="{{ $event->status === 'open' ? 'success' : 'neutral' }}">{{ ucfirst($event->status) }}</x-ui.badge>
+
+                        {{-- Date chip --}}
+                        <span class="absolute left-3 top-3 flex h-11 w-11 flex-col items-center justify-center rounded-xl bg-white/95 text-primary-800 shadow-sm ring-1 ring-white/40 backdrop-blur">
+                            <span class="text-sm font-bold leading-none">{{ $eventDate->format('d') }}</span>
+                            <span class="mt-0.5 text-[9px] font-semibold uppercase tracking-wide">{{ $eventDate->format('M') }}</span>
+                        </span>
+
+                        {{-- Status badges --}}
+                        <div class="absolute right-3 top-3 flex flex-col items-end gap-1.5">
+                            <x-ui.badge type="{{ $status['tone'] }}">
+                                <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $status['icon'] }}" />
+                                </svg>
+                                {{ ucfirst($event->status) }}
+                            </x-ui.badge>
+                            @if ($full)
+                                <x-ui.badge type="danger">
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                                    </svg>
+                                    Full
+                                </x-ui.badge>
+                            @endif
                         </div>
-                        @if ($full)
-                            <div class="absolute right-3 top-3"><x-ui.badge type="danger">Full</x-ui.badge></div>
-                        @endif
-                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-4 pb-2.5 pt-6">
+
+                        {{-- Bottom date/time overlay --}}
+                        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent px-4 pb-2.5 pt-6">
                             <p class="flex items-center gap-1.5 text-xs font-medium text-white">
                                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
                                 </svg>
-                                {{ \Carbon\Carbon::parse($event->date)->format('d M Y') }} · {{ $event->time }}
+                                {{ $eventDate->format('l, d M Y') }} · {{ $event->time }}
                             </p>
                         </div>
                     </a>
@@ -259,7 +309,12 @@
                     <div class="flex flex-1 flex-col p-5">
                         <div class="flex items-center gap-2">
                             <x-ui.badge type="info">{{ $event->category->category_name ?? 'General' }}</x-ui.badge>
-                            <span class="truncate text-xs text-slate-400">{{ $event->agency->agency_name ?? '' }}</span>
+                            <span class="flex min-w-0 items-center gap-1 truncate text-xs text-slate-400">
+                                <svg class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                                </svg>
+                                <span class="truncate">{{ $event->agency->agency_name ?? '' }}</span>
+                            </span>
                         </div>
 
                         <a href="{{ route('events.show', $event) }}">
@@ -280,12 +335,12 @@
                         <div class="mt-4">
                             <div class="mb-1.5 flex items-center justify-between text-xs">
                                 <span class="font-medium text-slate-500">Capacity</span>
-                                <span class="font-semibold {{ $full ? 'text-rose-600' : 'text-primary-700' }}">
-                                    {{ $registered }} / {{ $event->capacity }} filled
+                                <span class="font-semibold {{ $full ? 'text-rose-600' : ($warning ? 'text-amber-600' : 'text-primary-700') }}">
+                                    {{ $registered }} / {{ $capacity }} filled
                                 </span>
                             </div>
-                            <div class="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                                <div class="h-full rounded-full {{ $full ? 'bg-rose-500' : 'bg-gradient-to-r from-primary-600 to-primary-400' }} transition-all duration-500" style="width: {{ $pct }}%"></div>
+                            <div class="h-3 w-full overflow-hidden rounded-full bg-slate-100">
+                                <div class="h-full rounded-full {{ $full ? 'bg-rose-500' : ($warning ? 'bg-amber-500' : 'bg-gradient-to-r from-primary-600 to-primary-400') }} transition-all duration-500" style="width: {{ $pct }}%"></div>
                             </div>
                         </div>
 
@@ -308,21 +363,23 @@
         </div>
     @endif
 
-    <div class="mt-8">
-        {{ $events->links() }}
+    <div class="mt-8" data-reveal>
+        {{ $events->links('vendor.pagination.custom') }}
     </div>
 </section>
 
 {{-- ================= TRUST BADGES ================= --}}
 @if ($agencies->isNotEmpty())
-<section class="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8">
+<section class="mx-auto mt-16 max-w-7xl px-4 sm:px-6 lg:px-8" data-reveal>
     <div class="card px-6 py-8 text-center">
         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">Trusted by Malaysian government agencies</p>
         <div class="mt-5 flex flex-wrap items-center justify-center gap-3">
             @foreach ($agencies as $agency)
-                <span class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600">
-                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary-600 to-primary-800 text-xs font-bold text-white">
-                        {{ strtoupper(substr($agency->agency_code ?? $agency->agency_name, 0, 1)) }}
+                <span class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-primary-200 hover:bg-white">
+                    <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary-600 to-primary-800 text-white">
+                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                        </svg>
                     </span>
                     {{ $agency->agency_name }}
                 </span>
@@ -369,5 +426,22 @@
 
         counters.forEach((el) => observer.observe(el));
     })();
+
+    // Scroll-reveal fade-in effects
+    document.documentElement.classList.add('js-reveal');
+    const revealEls = document.querySelectorAll('[data-reveal]');
+    if ('IntersectionObserver' in window) {
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -32px 0px' });
+        revealEls.forEach((el) => revealObserver.observe(el));
+    } else {
+        revealEls.forEach((el) => el.classList.add('is-visible'));
+    }
 </script>
 @endsection

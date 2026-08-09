@@ -50,10 +50,23 @@ class DashboardController extends Controller
 
     private function participantDashboard(User $user)
     {
-        $registrations = $user->registrations()->with('event')->latest()->get();
-        $upcoming = $registrations->filter(fn ($r) => $r->event && $r->event->date >= now()->toDateString());
+        $registrations = $user->registrations()
+            ->with(['event' => fn ($q) => $q->withCount([
+                'registrations' => fn ($q) => $q->where('status', '!=', 'cancelled'),
+            ])])
+            ->latest()
+            ->get();
 
-        return view('dashboard.participant', compact('registrations', 'upcoming'));
+        $upcoming = $registrations
+            ->where('status', '!=', 'cancelled')
+            ->filter(fn ($r) => $r->event && $r->event->date->startOfDay()->gte(now()->startOfDay()))
+            ->sortBy(fn ($r) => $r->event->date)
+            ->values();
+
+        $certificateCount = $registrations->where('certificate_generated', true)->count();
+        $attendedCount = $registrations->where('status', 'attended')->count();
+
+        return view('dashboard.participant', compact('user', 'registrations', 'upcoming', 'certificateCount', 'attendedCount'));
     }
 
     public function systemReports()

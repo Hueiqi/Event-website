@@ -2,6 +2,7 @@
     'icon' => null,
     'label' => null,
     'value' => null,
+    'detail' => null,
     'tone' => 'primary',
 ])
 
@@ -15,16 +16,19 @@
     ];
 @endphp
 
-<div {{ $attributes->merge(['class' => 'card flex items-center gap-4 p-5']) }}>
+<div {{ $attributes->merge(['class' => 'card group flex items-center gap-4 p-5 transition duration-200 hover:-translate-y-0.5 hover:shadow-md']) }}>
     @if ($icon)
-        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl {{ $tones[$tone] }}">
+        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl {{ $tones[$tone] }} transition duration-200 group-hover:scale-105">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}" />
             </svg>
         </div>
     @endif
-    <div>
+    <div class="min-w-0">
         <p class="text-2xl font-bold tracking-tight text-slate-900">{{ $value }}</p>
-        <p class="text-sm text-slate-500">{{ $label }}</p>
+        <p class="text-sm font-medium text-slate-600">{{ $label }}</p>
+        @if ($detail)
+            <p class="mt-0.5 truncate text-xs font-medium text-slate-600">{{ $detail }}</p>
+        @endif
     </div>
 </div>

@@ -87,3 +87,25 @@
         @apply px-4 py-3 text-sm text-slate-700;
     }
 }
+
+/* Scroll-reveal (enabled only when JS is available) */
+.js-reveal .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+        opacity 0.6s ease var(--reveal-delay, 0s),
+        transform 0.6s ease var(--reveal-delay, 0s);
+}
+
+.js-reveal .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .js-reveal .reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
